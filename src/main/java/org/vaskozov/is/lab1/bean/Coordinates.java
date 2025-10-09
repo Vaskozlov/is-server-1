@@ -21,9 +21,12 @@ public class Coordinates {
     private Long id;
 
     @NotNull
+    @JsonbNillable
     @Min(-367)
     private Integer x;
 
+    @JsonbNillable
     @Max(944)
-    private float y;
+    @NotNull
+    private Float y;
 }

@@ -16,17 +16,13 @@ public class PersonsDatabase implements PersonsDatabaseInterface {
     private EntityManager em;
 
     @Override
-    public boolean savePerson(Person person) {
-        try {
-            if (person.getId() == null) {
-                em.persist(person);
-                return true;
-            }
-        } catch (Exception ignored) {
-
+    public Person savePerson(Person person) {
+        if (person.getId() == null) {
+            person = em.merge(person);
+            return person;
         }
 
-        return false;
+        return null;
     }
 
     @Override
@@ -36,7 +32,14 @@ public class PersonsDatabase implements PersonsDatabaseInterface {
 
     @Override
     public boolean deletePerson(long id) {
-        return false;
+        try {
+            Person p = em.find(Person.class, id);
+            em.remove(p);
+            return true;
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+            return false;
+        }
     }
 
     @Override
@@ -45,37 +48,120 @@ public class PersonsDatabase implements PersonsDatabaseInterface {
     }
 
     @Override
+    public List<Person> getPersonsByCoordinateId(long id) {
+        return em
+                .createQuery("SELECT p FROM Person p WHERE p.coordinates.id = :id", Person.class)
+                .setParameter("id", id)
+                .getResultList();
+    }
+
+    @Override
+    public List<Person> getPersonsByLocationId(long id) {
+        return em
+                .createQuery("SELECT p FROM Person p WHERE p.location.id = :id", Person.class)
+                .setParameter("id", id)
+                .getResultList();
+    }
+
+    @Override
     public Person updatePerson(Person updatedPerson) {
         Person existing = em.find(Person.class, updatedPerson.getId());
-        Coordinates coordinates = em.find(Coordinates.class, updatedPerson.getCoordinates().getId());
-        Location location = em.find(Location.class, updatedPerson.getLocation().getId());
 
         if (existing == null) {
             throw new IllegalArgumentException("Person with id " + updatedPerson.getId() + " not found");
         }
 
-        existing.setName(updatedPerson.getName());
-        existing.setEyeColor(updatedPerson.getEyeColor());
-        existing.setHairColor(updatedPerson.getHairColor());
-        existing.setHeight(updatedPerson.getHeight());
-        existing.setWeight(updatedPerson.getWeight());
-        existing.setNationality(updatedPerson.getNationality());
-
-        if (existing.getCoordinates().getId().equals(coordinates.getId())) {
-            coordinates.setX(updatedPerson.getCoordinates().getX());
-            coordinates.setY(updatedPerson.getCoordinates().getY());
-        } else {
-            existing.getCoordinates().setId(coordinates.getId());
+        if (updatedPerson.getName() != null) {
+            existing.setName(updatedPerson.getName());
         }
 
-        if (existing.getLocation().getId().equals(location.getId())) {
-            location.setX(updatedPerson.getLocation().getX());
-            location.setY(updatedPerson.getLocation().getY());
-            location.setName(updatedPerson.getLocation().getName());
-        } else {
-            existing.getLocation().setId(location.getId());
+        if (updatedPerson.getEyeColor() != null) {
+            existing.setEyeColor(updatedPerson.getEyeColor());
+        }
+
+        if (updatedPerson.getHairColor() != null) {
+            existing.setHairColor(updatedPerson.getHairColor());
+        }
+
+        if (updatedPerson.getHeight() != null) {
+            existing.setHeight(updatedPerson.getHeight());
+        }
+
+        if (updatedPerson.getWeight() != null) {
+            existing.setWeight(updatedPerson.getWeight());
+        }
+
+        if (updatedPerson.getNationality() != null) {
+            existing.setNationality(updatedPerson.getNationality());
+        }
+
+        if (updatedPerson.getCoordinates() != null) {
+            updateCoordinates(updatedPerson, existing);
+        }
+
+        if (updatedPerson.getLocation() != null) {
+            updateLocation(updatedPerson, existing);
         }
 
         return existing;
+    }
+
+    private void updateLocation(Person updatedPerson, Person existing) {
+        var locId = updatedPerson.getLocation().getId();
+
+        if (locId == null) {
+            var newLocation = new Location();
+            newLocation.setX(updatedPerson.getLocation().getX());
+            newLocation.setY(updatedPerson.getLocation().getY());
+            newLocation.setName(updatedPerson.getLocation().getName());
+            existing.setLocation(newLocation);
+            return;
+        }
+
+        var location = em.find(Location.class, updatedPerson.getLocation().getId());
+        var newLocation = updatedPerson.getLocation();
+
+        location.setX(newLocation.getX());
+        location.setY(newLocation.getY());
+        location.setName(newLocation.getName());
+
+        existing.setLocation(location);
+    }
+
+    private void updateCoordinates(Person updatedPerson, Person existing) {
+        var coordsId = updatedPerson.getCoordinates().getId();
+
+        if (coordsId == null) {
+            var newCoordinates = new Coordinates();
+            newCoordinates.setX(updatedPerson.getCoordinates().getX());
+            newCoordinates.setY(updatedPerson.getCoordinates().getY());
+            existing.setCoordinates(newCoordinates);
+            return;
+        }
+
+        var coords = em.find(Coordinates.class, updatedPerson.getCoordinates().getId());
+        var newCoords = updatedPerson.getCoordinates();
+
+        coords.setX(newCoords.getX());
+        coords.setY(newCoords.getY());
+
+        existing.setCoordinates(coords);
+    }
+
+    @Override
+    public boolean hasLocation(long id){
+        return em.find(Location.class, id) != null;
+    }
+
+    @Override
+    public boolean hasPerson(long id)
+    {
+        return em.find(Person.class, id) != null;
+    }
+
+    @Override
+    public boolean hasCoordinate(long id)
+    {
+        return em.find(Coordinates.class, id) != null;
     }
 }

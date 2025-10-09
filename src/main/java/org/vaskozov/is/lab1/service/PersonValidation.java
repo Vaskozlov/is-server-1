@@ -1,0 +1,72 @@
+package org.vaskozov.is.lab1.service;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response;
+import org.vaskozov.is.lab1.bean.Person;
+import org.vaskozov.is.lab1.lib.Result;
+
+@ApplicationScoped
+public class PersonValidation {
+    @Inject
+    private LocationValidation locationValidation;
+
+    @Inject
+    private CoordinatesValidation coordinatesValidation;
+
+    private static Result<Void, Response> constructBadRequest(String message) {
+        return Result.error(
+                Response.status(Response.Status.BAD_REQUEST)
+                        .entity(message)
+                        .build()
+        );
+    }
+
+    public Result<Void, Response> validate(Person person) {
+        if (person.getName() == null || person.getName().isBlank()) {
+            return constructBadRequest("Person's name can not be blank");
+        }
+
+        if (person.getCoordinates() == null) {
+            return constructBadRequest("Person's coordinates can not be null");
+        }
+
+        var coordinatesValidationResult = coordinatesValidation.validate(person.getCoordinates());
+
+        if (coordinatesValidationResult.isError()) {
+            return coordinatesValidationResult;
+        }
+
+        if (person.getEyeColor() == null) {
+            return constructBadRequest("Person's eye color can not be null");
+        }
+
+        if (person.getHairColor() == null) {
+            return constructBadRequest("Person's hair color can not be null");
+        }
+
+        var locationValidationResult = locationValidation.validate(person.getLocation());
+
+        if (locationValidationResult.isError()) {
+            return locationValidationResult;
+        }
+
+        if (person.getHeight() == null) {
+            return constructBadRequest("Person's height can not be null");
+        }
+
+        if (person.getHeight() <= 0) {
+            return constructBadRequest("Person's height must be positive");
+        }
+
+        if (person.getWeight() == null) {
+            return constructBadRequest("Person's weight can not be null");
+        }
+
+        if (person.getWeight() <= 0) {
+            return constructBadRequest("Person's weight must be positive");
+        }
+
+        return Result.success(null);
+    }
+}

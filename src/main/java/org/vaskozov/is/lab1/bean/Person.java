@@ -29,7 +29,8 @@ public class Person {
     private String name;
 
     @NotNull
-    @ManyToOne(cascade = CascadeType.ALL, optional = false)
+    @JsonbNillable
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH}, optional = false)
     @JoinColumn(name = "coordinates_id", nullable = false)
     private Coordinates coordinates;
 
@@ -40,23 +41,30 @@ public class Person {
     private LocalDateTime creationTime;
 
     @NotNull
+    @JsonbNillable
     private Color eyeColor;
 
     @NotNull
+    @JsonbNillable
     private Color hairColor;
 
     @NotNull
-    @ManyToOne(cascade = CascadeType.ALL, optional = false)
+    @JsonbNillable
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH}, optional = false)
     @JoinColumn(name = "location_id")
     private Location location;
 
     @Positive
-    private double height;
+    @NotNull
+    @JsonbNillable
+    private Double height;
 
     @NotNull
     @Positive
+    @JsonbNillable
     private Float weight;
 
     @Nullable
+    @JsonbNillable
     private Country nationality;
 }

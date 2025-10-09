@@ -10,6 +10,8 @@ import jakarta.websocket.OnOpen;
 import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
 import org.vaskozov.is.lab1.bean.Person;
+import org.vaskozov.is.lab1.lib.BroadcastMessage;
+import org.vaskozov.is.lab1.lib.PersonState;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -43,8 +45,18 @@ public class ClientWebSocket {
         System.out.println("Closed session: " + session.getId());
     }
 
-    public void broadcastPerson(Person person) {
-        String personAsJson = JSONB.toJson(person);
+    public void broadcastPersonDeleted(Person person) {
+        String personAsJson = JSONB.toJson(new BroadcastMessage(PersonState.DELETED, person));
+
+        synchronized (sessions) {
+            for (Session session : sessions) {
+                sendPersonToClient(personAsJson, session);
+            }
+        }
+    }
+
+    public void broadcastPersonUpdate(Person person) {
+        String personAsJson = JSONB.toJson(new BroadcastMessage(PersonState.UPDATED, person));
 
         synchronized (sessions) {
             for (Session session : sessions) {
@@ -56,11 +68,13 @@ public class ClientWebSocket {
     private void sendPersonToClient(String personAsJson, Session session) {
         if (session.isOpen()) {
             try {
-                session.getAsyncRemote().sendText(personAsJson);
+                session.getBasicRemote().sendText(personAsJson);
             } catch (Exception exception) {
                 System.out.println("Exception: " + exception);
                 exception.getStackTrace();
             }
+        } else {
+            System.out.println("Not conntected");
         }
     }
 }

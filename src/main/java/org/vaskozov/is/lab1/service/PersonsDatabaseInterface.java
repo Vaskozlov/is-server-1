@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PersonsDatabaseInterface {
-    boolean savePerson(Person person);
+    Person savePerson(Person person);
 
     Optional<Person> getPerson(long id);
 
@@ -14,5 +14,15 @@ public interface PersonsDatabaseInterface {
 
     List<Person> getPersons();
 
+    List<Person> getPersonsByCoordinateId(long id);
+
+    List<Person> getPersonsByLocationId(long id);
+
     Person updatePerson(Person person);
+
+    boolean hasLocation(long id);
+
+    boolean hasPerson(long id);
+
+    boolean hasCoordinate(long id);
 }

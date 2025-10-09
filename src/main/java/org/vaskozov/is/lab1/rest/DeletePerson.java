@@ -3,36 +3,30 @@ package org.vaskozov.is.lab1.rest;
 import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.vaskozov.is.lab1.bean.Person;
 import org.vaskozov.is.lab1.service.PersonService;
-import org.vaskozov.is.lab1.service.PersonValidation;
-
-import java.time.LocalDateTime;
 
 @ApplicationScoped
-@Path("/person/save")
+@Path("/person/delete")
 @PermitAll
-public class SavePerson {
+public class DeletePerson {
     @Inject
     private PersonService personService;
 
-    @Inject
-    private PersonValidation personValidation;
-
     @POST
-    public Response savePerson(Person person) {
-        var personValidationResult = personValidation.validate(person);
-
-        if (personValidationResult.isError()) {
-            return personValidationResult.getError();
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response deletePerson(Person person) {
+        if (person.getId() == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Deleted person ID can not be null").build();
         }
 
         try {
-            person.setCreationTime(LocalDateTime.now());
-            personService.create(person);
+            personService.delete(person);
             return Response.ok().build();
         } catch (Exception ex) {
             System.err.println(ex.getMessage());
