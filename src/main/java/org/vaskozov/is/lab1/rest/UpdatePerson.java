@@ -27,14 +27,9 @@ public class UpdatePerson {
     @Inject
     private PersonService personService;
 
-    @Inject
-    private CoordinatesValidation coordinatesValidation;
-
-    @Inject
-    private LocationValidation locationValidation;
 
     @POST
-    @Consumes(MediaType.TEXT_PLAIN)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response updatePerson(String json) {
         Person person;
 
@@ -44,36 +39,16 @@ public class UpdatePerson {
             return Response.status(Response.Status.BAD_REQUEST).entity("Failed to parse JSON").build();
         }
 
-        if (person.getName() != null && person.getName().isBlank()) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Name is required").build();
-        }
-
-        if (person.getCoordinates() != null) {
-            var coordinatesValidationResult = coordinatesValidation.validate(person.getCoordinates());
-
-            if (coordinatesValidationResult.isError()) {
-                return coordinatesValidationResult.getError();
-            }
-        }
-
-        if (person.getLocation() != null) {
-            var locationValidationResult = locationValidation.validate(person.getLocation());
-
-            if (locationValidationResult.isError()) {
-                return locationValidationResult.getError();
-            }
-        }
-
-        if (person.getHeight() != null && person.getHeight() <= 0) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Height must be positive").build();
-        }
-
-        if (person.getWeight() != null && person.getWeight() <= 0) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Weight must be positive").build();
-        }
-
         try {
-            this.personService.update(person);
+            var updateResult = this.personService.update(person);
+
+            if (updateResult.isError()) {
+                return Response
+                        .status(Response.Status.BAD_REQUEST)
+                        .entity(updateResult.getError())
+                        .build();
+            }
+
             return Response.ok().build();
         } catch (Exception ex) {
             System.err.println(ex.getMessage());

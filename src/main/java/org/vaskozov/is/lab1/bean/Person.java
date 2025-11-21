@@ -30,11 +30,10 @@ public class Person {
 
     @NotNull
     @JsonbNillable
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH}, optional = false)
+    @ManyToOne(cascade = CascadeType.ALL, optional = false)
     @JoinColumn(name = "coordinates_id", nullable = false)
     private Coordinates coordinates;
 
-    @NotNull
     @JsonbNillable
     @CreationTimestamp
     @JsonbDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
@@ -50,7 +49,7 @@ public class Person {
 
     @NotNull
     @JsonbNillable
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH}, optional = false)
+    @ManyToOne(cascade = CascadeType.ALL, optional = false)
     @JoinColumn(name = "location_id")
     private Location location;
 

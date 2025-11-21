@@ -2,7 +2,6 @@ package org.vaskozov.is.lab1.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.core.Response;
 import org.vaskozov.is.lab1.bean.Person;
 import org.vaskozov.is.lab1.lib.Result;
 
@@ -14,15 +13,11 @@ public class PersonValidation {
     @Inject
     private CoordinatesValidation coordinatesValidation;
 
-    private static Result<Void, Response> constructBadRequest(String message) {
-        return Result.error(
-                Response.status(Response.Status.BAD_REQUEST)
-                        .entity(message)
-                        .build()
-        );
+    private static Result<Void, String> constructBadRequest(String message) {
+        return Result.error(message);
     }
 
-    public Result<Void, Response> validate(Person person) {
+    public Result<Void, String> validate(Person person) {
         if (person.getName() == null || person.getName().isBlank()) {
             return constructBadRequest("Person's name can not be blank");
         }

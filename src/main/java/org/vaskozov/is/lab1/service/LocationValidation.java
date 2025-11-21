@@ -1,31 +1,31 @@
 package org.vaskozov.is.lab1.service;
 
-import jakarta.ejb.EJB;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.ws.rs.core.Response;
+import jakarta.inject.Inject;
 import org.vaskozov.is.lab1.bean.Location;
 import org.vaskozov.is.lab1.lib.Result;
+import org.vaskozov.is.lab1.repository.LocationRepository;
 
 @ApplicationScoped
 public class LocationValidation {
-    @EJB(name = "java:global/is_lab_1/PersonsDatabase")
-    private PersonsDatabaseInterface database;
+    @Inject
+    private LocationRepository locationRepository;
 
-    public Result<Void, Response> validate(Location location) {
+    public Result<Void, String> validate(Location location) {
         if (location.getName().length() > 409) {
-            return Result.error(
-                    Response.status(Response.Status.BAD_REQUEST)
-                            .entity("Location.name must be less than 409")
-                            .build()
-            );
+            return Result.error("Location.name must be less than 409");
         }
 
-        if (location.getId() != null && !database.hasLocation(location.getId())) {
-            return Result.error(
-                    Response.status(Response.Status.BAD_REQUEST)
-                            .entity("Location with id " + location.getId() + " does not exist")
-                            .build()
-            );
+        if (location.getId() != null && locationRepository.findById(location.getId()).isEmpty()) {
+            return Result.error("Location with id " + location.getId() + " does not exist");
+        }
+
+        if (location.getX() < 0 || location.getX() >= 360.0) {
+            return Result.error("Location.x must be between 0 and 360");
+        }
+
+        if (location.getY() < 0 || location.getY() >= 180.0) {
+            return Result.error("Location.y must be between 0 and 180");
         }
 
         return Result.success(null);

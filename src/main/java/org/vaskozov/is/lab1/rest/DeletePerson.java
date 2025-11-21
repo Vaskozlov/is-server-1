@@ -3,9 +3,7 @@ package org.vaskozov.is.lab1.rest;
 import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.vaskozov.is.lab1.bean.Person;
@@ -18,15 +16,14 @@ public class DeletePerson {
     @Inject
     private PersonService personService;
 
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response deletePerson(Person person) {
-        if (person.getId() == null) {
+    @DELETE
+    public Response deletePerson(@QueryParam("id") Long id) {
+        if (id == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Deleted person ID can not be null").build();
         }
 
         try {
-            personService.delete(person);
+            personService.delete(id);
             return Response.ok().build();
         } catch (Exception ex) {
             System.err.println(ex.getMessage());

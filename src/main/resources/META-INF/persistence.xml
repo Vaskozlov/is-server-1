@@ -10,13 +10,24 @@
         <class>org.vaskozov.is.lab1.bean.Coordinates</class>
         <class>org.vaskozov.is.lab1.bean.Person</class>
         <class>org.vaskozov.is.lab1.bean.Location</class>
+        <class>org.vaskozov.is.lab1.bean.User</class>
+        <class>org.vaskozov.is.lab1.bean.Operation</class>
         <properties>
             <property name="hibernate.hbm2ddl.auto" value="update"/>
-            <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/IsLab1"/>
+            <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/islab1"/>
             <property name="jakarta.persistence.jdbc.user" value="vaskozlov"/>
             <property name="jakarta.persistence.jdbc.password" value=""/>
             <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
-            <property name="jakarta.persistence.schema-generation.database.action" value="create" />
+            <property name="jakarta.persistence.schema-generation.database.action" value="update" />
+            <property name="hibernate.jdbc.time_zone" value="UTC"/>
+
+            <property name="hibernate.jdbc.batch_size" value="25"/>
+            <property name="hibernate.jdbc.batch_versioned_data" value="true"/>
+            <property name="hibernate.order_inserts" value="true"/>
+            <property name="hibernate.order_updates" value="true"/>
+
+            <property name="hibernate.generate_statistics" value="false"/>
+            <property name="hibernate.statement_batch_size" value="25"/>
         </properties>
     </persistence-unit>
 </persistence>

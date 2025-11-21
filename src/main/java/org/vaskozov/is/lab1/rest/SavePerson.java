@@ -8,9 +8,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import org.vaskozov.is.lab1.bean.Person;
 import org.vaskozov.is.lab1.service.PersonService;
-import org.vaskozov.is.lab1.service.PersonValidation;
-
-import java.time.LocalDateTime;
 
 @ApplicationScoped
 @Path("/person/save")
@@ -19,21 +16,26 @@ public class SavePerson {
     @Inject
     private PersonService personService;
 
-    @Inject
-    private PersonValidation personValidation;
-
     @POST
     public Response savePerson(Person person) {
-        var personValidationResult = personValidation.validate(person);
-
-        if (personValidationResult.isError()) {
-            return personValidationResult.getError();
-        }
-
         try {
-            person.setCreationTime(LocalDateTime.now());
-            personService.create(person);
-            return Response.ok().build();
+            var creationResult = personService.create(person);
+
+            if (creationResult.isError()) {
+                return Response
+                        .status(Response.Status.BAD_REQUEST)
+                        .entity(creationResult.getError())
+                        .build();
+            }
+
+            return Response
+                    .status(Response.Status.CREATED)
+                    .entity(creationResult.getValue())
+                    .build();
+        } catch (org.hibernate.exception.ConstraintViolationException e) {
+            return savePerson(person);
+        } catch (IllegalStateException e) {
+            return savePerson(person);
         } catch (Exception ex) {
             System.err.println(ex.getMessage());
             ex.printStackTrace();

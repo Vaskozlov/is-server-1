@@ -1,39 +1,27 @@
 package org.vaskozov.is.lab1.service;
 
-import jakarta.ejb.EJB;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.ws.rs.core.Response;
+import jakarta.inject.Inject;
 import org.vaskozov.is.lab1.bean.Coordinates;
 import org.vaskozov.is.lab1.lib.Result;
+import org.vaskozov.is.lab1.repository.CoordinatesRepository;
 
 @ApplicationScoped
 public class CoordinatesValidation {
-    @EJB(name = "java:global/is_lab_1/PersonsDatabase")
-    private PersonsDatabaseInterface database;
+    @Inject
+    private CoordinatesRepository coordinatesRepository;
 
-    public Result<Void, Response> validate(Coordinates coordinates) {
+    public Result<Void, String> validate(Coordinates coordinates) {
         if (coordinates.getX() != null && coordinates.getX() < -367) {
-            return Result.error(
-                    Response.status(Response.Status.BAD_REQUEST)
-                            .entity("Coordinate.x can not be below -367")
-                            .build()
-            );
+            return Result.error("Coordinate.x can not be below -367");
         }
 
         if (coordinates.getY() != null && coordinates.getY() > 944) {
-            return Result.error(
-                    Response.status(Response.Status.BAD_REQUEST)
-                            .entity("Coordinate.y can not be above 944")
-                            .build()
-            );
+            return Result.error("Coordinate.y can not be above 944");
         }
 
-        if (coordinates.getId() != null && !database.hasCoordinate(coordinates.getId())) {
-            return Result.error(
-                    Response.status(Response.Status.BAD_REQUEST)
-                            .entity("Coordinate with id " + coordinates.getId() + " doesn't exist")
-                            .build()
-            );
+        if (coordinates.getId() != null && coordinatesRepository.findById(coordinates.getId()).isEmpty()) {
+            return Result.error("Coordinate with id " + coordinates.getId() + " doesn't exist");
         }
 
         return Result.success(null);
