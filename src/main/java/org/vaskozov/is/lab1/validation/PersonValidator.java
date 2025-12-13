@@ -1,4 +1,4 @@
-package org.vaskozov.is.lab1.service;
+package org.vaskozov.is.lab1.validation;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -6,12 +6,12 @@ import org.vaskozov.is.lab1.bean.Person;
 import org.vaskozov.is.lab1.lib.Result;
 
 @ApplicationScoped
-public class PersonValidation {
+public class PersonValidator {
     @Inject
-    private LocationValidation locationValidation;
+    private LocationValidator locationValidator;
 
     @Inject
-    private CoordinatesValidation coordinatesValidation;
+    private CoordinatesValidator coordinatesValidator;
 
     private static Result<Void, String> constructBadRequest(String message) {
         return Result.error(message);
@@ -26,7 +26,7 @@ public class PersonValidation {
             return constructBadRequest("Person's coordinates can not be null");
         }
 
-        var coordinatesValidationResult = coordinatesValidation.validate(person.getCoordinates());
+        var coordinatesValidationResult = coordinatesValidator.validate(person.getCoordinates());
 
         if (coordinatesValidationResult.isError()) {
             return coordinatesValidationResult;
@@ -40,7 +40,7 @@ public class PersonValidation {
             return constructBadRequest("Person's hair color can not be null");
         }
 
-        var locationValidationResult = locationValidation.validate(person.getLocation());
+        var locationValidationResult = locationValidator.validate(person.getLocation());
 
         if (locationValidationResult.isError()) {
             return locationValidationResult;

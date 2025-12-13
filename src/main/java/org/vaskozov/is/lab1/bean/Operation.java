@@ -1,10 +1,10 @@
 package org.vaskozov.is.lab1.bean;
 
 import jakarta.json.bind.annotation.JsonbDateFormat;
-import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -41,4 +41,7 @@ public class Operation {
     @CreationTimestamp
     @JsonbDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private Instant created;
+
+    @Size(max = 128)
+    private String fileUrl;
 }

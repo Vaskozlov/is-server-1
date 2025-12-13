@@ -8,8 +8,12 @@ import jakarta.transaction.Transactional;
 import org.vaskozov.is.lab1.bean.*;
 import org.vaskozov.is.lab1.lib.Result;
 import org.vaskozov.is.lab1.repository.*;
+import org.vaskozov.is.lab1.validation.CoordinatesValidator;
+import org.vaskozov.is.lab1.validation.LocationValidator;
+import org.vaskozov.is.lab1.validation.PersonValidator;
 import org.vaskozov.is.lab1.websocket.ClientWebSocket;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,10 +26,10 @@ public class PersonService {
     private PersonRepository personRepository;
 
     @Inject
-    private CoordinatesValidation coordinatesValidation;
+    private CoordinatesValidator coordinatesValidator;
 
     @Inject
-    private LocationValidation locationValidation;
+    private LocationValidator locationValidator;
 
     @Inject
     private CoordinatesRepository coordinatesRepository;
@@ -34,7 +38,7 @@ public class PersonService {
     private LocationRepository locationRepository;
 
     @Inject
-    private PersonValidation personValidation;
+    private PersonValidator personValidator;
 
     @Inject
     private UserRepository userRepository;
@@ -59,7 +63,7 @@ public class PersonService {
 
     @Transactional
     public Result<Long, String> create(Person person) {
-        var personValidationResult = personValidation.validate(person);
+        var personValidationResult = personValidator.validate(person);
 
         if (personValidationResult.isError()) {
             return Result.error(personValidationResult.getError());
@@ -93,7 +97,7 @@ public class PersonService {
         }
 
         if (person.getCoordinates() != null) {
-            var coordinatesValidationResult = coordinatesValidation.validate(person.getCoordinates());
+            var coordinatesValidationResult = coordinatesValidator.validate(person.getCoordinates());
 
             if (coordinatesValidationResult.isError()) {
                 return coordinatesValidationResult;
@@ -103,7 +107,7 @@ public class PersonService {
         }
 
         if (person.getLocation() != null) {
-            var locationValidationResult = locationValidation.validate(person.getLocation());
+            var locationValidationResult = locationValidator.validate(person.getLocation());
 
             if (locationValidationResult.isError()) {
                 return locationValidationResult;
@@ -159,7 +163,7 @@ public class PersonService {
         var operation = operationRepository.save(operationBuilder.build());
 
         for (Person person : persons) {
-            var personValidationResult = personValidation.validate(person);
+            var personValidationResult = personValidator.validate(person);
 
             if (personValidationResult.isError()) {
                 return Result.error(personValidationResult.getError());
@@ -170,6 +174,7 @@ public class PersonService {
 
         for (Person person : persons) {
             em.persist(person);
+            person.setCreationTime(LocalDateTime.now());
             savedPersons.add(person);
 //            person.setLocation(locationRepository.save(person.getLocation()));
 //            person.setCoordinates(coordinatesRepository.save(person.getCoordinates()));

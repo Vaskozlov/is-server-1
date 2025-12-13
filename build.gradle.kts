@@ -16,7 +16,7 @@ val jakartaEjbVersion = "4.0.1"
 val jakartaApiVersion = "11.0.0"
 val jakartaDataVersion = "1.0.1"
 val hibernateVersion = "7.1.7.Final"
-val postgresqlVersion = "42.7.4"
+val postgresqlVersion = "42.7.7"
 val lombokVersion = "1.18.34"
 val guavaVersion = "33.3.1-jre"
 val jjwtVersion = "0.12.6"
@@ -24,6 +24,8 @@ val jsonBindVersion = "3.0.1"
 val validatorVersion = "8.0.3.Final"
 val jakartaPersistenceApi = "3.2.0"
 val argon2Version = "2.12"
+val minioVersion = "8.6.0"
+val opencsvVersion = "5.12.0"
 
 java{
     sourceCompatibility = JavaVersion.VERSION_21
@@ -49,6 +51,8 @@ dependencies {
     implementation("jakarta.json.bind:jakarta.json.bind-api:${jsonBindVersion}")
     implementation(kotlin("stdlib-jdk8"))
     implementation("de.mkammerer:argon2-jvm:${argon2Version}")
+    implementation("io.minio:minio:${minioVersion}")
+    implementation("com.opencsv:opencsv:${opencsvVersion}")
 }
 
 kotlin {

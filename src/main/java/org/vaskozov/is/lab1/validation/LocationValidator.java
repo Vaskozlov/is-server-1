@@ -1,4 +1,4 @@
-package org.vaskozov.is.lab1.service;
+package org.vaskozov.is.lab1.validation;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -7,7 +7,7 @@ import org.vaskozov.is.lab1.lib.Result;
 import org.vaskozov.is.lab1.repository.LocationRepository;
 
 @ApplicationScoped
-public class LocationValidation {
+public class LocationValidator {
     @Inject
     private LocationRepository locationRepository;
 

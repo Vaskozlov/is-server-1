@@ -13,8 +13,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.vaskozov.is.lab1.bean.Person;
-import org.vaskozov.is.lab1.service.CoordinatesValidation;
-import org.vaskozov.is.lab1.service.LocationValidation;
 import org.vaskozov.is.lab1.service.PersonService;
 
 @ApplicationScoped
