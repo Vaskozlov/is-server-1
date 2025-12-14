@@ -70,4 +70,17 @@ public class MinioService {
             throw new RuntimeException("Failed to generate presigned URL", e);
         }
     }
+
+    public InputStream getFileStream(String objectName) {
+        try {
+            return minioClient.getObject(
+                    GetObjectArgs.builder()
+                            .bucket(BUCKET_NAME)
+                            .object(objectName)
+                            .build()
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get file from MinIO", e);
+        }
+    }
 }
