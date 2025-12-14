@@ -3,10 +3,7 @@ package org.vaskozov.is.lab1.rest;
 import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.StreamingOutput;
@@ -24,6 +21,13 @@ public class DownloadFile {
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response downloadFile(@QueryParam("objectName") String objectName) {
+        if (objectName == null) {
+            return Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity("objectName is required")
+                    .build();
+        }
+
         try {
             InputStream fileStream = minioService.getFileStream(objectName);
 
@@ -38,6 +42,11 @@ public class DownloadFile {
 
             return Response.ok(stream)
                     .header("Content-Disposition", "attachment; filename=\"" + objectName + "\"")
+                    .build();
+        } catch (NotFoundException e) {
+            return Response
+                    .status(Response.Status.NOT_FOUND)
+                    .entity("Failed to find object with provided name")
                     .build();
         } catch (Exception e) {
             System.err.println(e.getMessage());

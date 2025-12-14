@@ -4,6 +4,7 @@ import io.minio.*;
 import io.minio.http.Method;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ws.rs.NotFoundException;
 
 import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
@@ -80,7 +81,7 @@ public class MinioService {
                             .build()
             );
         } catch (Exception e) {
-            throw new RuntimeException("Failed to get file from MinIO", e);
+            throw new NotFoundException("Failed to get file from MinIO", e);
         }
     }
 }
