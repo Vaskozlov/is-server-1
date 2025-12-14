@@ -23,7 +23,7 @@ public class DownloadFile {
 
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response downloadFile(@QueryParam("objectName") String objectName, @QueryParam("fileName") String fileName) {
+    public Response downloadFile(@QueryParam("objectName") String objectName) {
         try {
             InputStream fileStream = minioService.getFileStream(objectName);
 
@@ -37,7 +37,7 @@ public class DownloadFile {
             };
 
             return Response.ok(stream)
-                    .header("Content-Disposition", "attachment; filename=\"" + (fileName != null ? fileName : objectName) + "\"")
+                    .header("Content-Disposition", "attachment; filename=\"" + objectName + "\"")
                     .build();
         } catch (Exception e) {
             System.err.println(e.getMessage());
