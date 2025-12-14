@@ -37,21 +37,6 @@ public class SavePersons {
     private static final JsonbConfig JSONB_CONFIG = new JsonbConfig();
     private static final Jsonb JSONB = JsonbBuilder.create(JSONB_CONFIG);
 
-
-    private static final Type listType = new ParameterizedType() {
-        public Type[] getActualTypeArguments() {
-            return new Type[]{Person.class};
-        }
-
-        public Type getRawType() {
-            return List.class;
-        }
-
-        public Type getOwnerType() {
-            return null;
-        }
-    };
-
     @Inject
     private PersonService personService;
 
@@ -133,6 +118,7 @@ public class SavePersons {
                     .status(OperationStatus.SUCCESS)
                     .user(user)
                     .fileUrl(fileUrl)
+                    .changes((long) persons.size())
                     .build();
 
             operationRepository.save(operation);
