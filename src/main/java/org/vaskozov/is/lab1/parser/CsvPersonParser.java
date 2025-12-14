@@ -104,7 +104,7 @@ public class CsvPersonParser {
     private Result<Person, String> parseRow(Map<String, Integer> headerMap, String[] row) {
         try {
             Coordinates coordinates = Coordinates.builder()
-                    .id(headerMap.containsKey("coordinates_id")
+                    .id(headerMap.containsKey("coordinates_id") && !row[headerMap.get("coordinates_id")].isBlank()
                             ? Long.parseLong(row[headerMap.get("coordinates_id")])
                             : null)
                     .x(Integer.parseInt(row[headerMap.get("coordinates_x")]))
@@ -113,7 +113,7 @@ public class CsvPersonParser {
 
             Location location = Location.builder()
                     .id(
-                            headerMap.containsKey("location_id")
+                            headerMap.containsKey("location_id") && !row[headerMap.get("location_id")].isBlank()
                                     ? Long.parseLong(row[headerMap.get("location_id")])
                                     : null
                     )
@@ -141,6 +141,8 @@ public class CsvPersonParser {
 
             return Result.success(person);
         } catch (Exception ignored) {
+            System.err.println(ignored.getMessage());
+            ignored.printStackTrace(System.err);
             return Result.error("Failed to parse person data");
         }
     }

@@ -43,6 +43,7 @@ public class MinioService {
                     PutObjectArgs
                             .builder()
                             .object(objectName)
+                            .bucket(BUCKET_NAME)
                             .stream(input, size, -1)
                             .contentType(contentType)
                             .build()
@@ -50,7 +51,8 @@ public class MinioService {
 
             return getPresignedUrl(objectName);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to upload file to MinIO", e);
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Failed to upload file to MinIO: " + e.getMessage(), e);
         }
     }
 

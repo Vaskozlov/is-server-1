@@ -42,6 +42,6 @@ public class Operation {
     @JsonbDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private Instant created;
 
-    @Size(max = 128)
+    @Size(max = 512)
     private String fileUrl;
 }
