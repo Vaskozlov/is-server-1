@@ -10,8 +10,8 @@ import jakarta.websocket.OnOpen;
 import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
 import org.vaskozov.is.lab1.bean.Person;
-import org.vaskozov.is.lab1.lib.BroadcastMessage;
-import org.vaskozov.is.lab1.lib.PersonState;
+import org.vaskozov.is.lab1.dto.PersonUpdateDTO;
+import org.vaskozov.is.lab1.util.PersonState;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -46,7 +46,7 @@ public class ClientWebSocket {
     }
 
     public void broadcastPersonDeleted(Person person) {
-        String personAsJson = JSONB.toJson(new BroadcastMessage(PersonState.DELETED, person));
+        String personAsJson = JSONB.toJson(new PersonUpdateDTO(PersonState.DELETED, person));
 
         synchronized (sessions) {
             for (Session session : sessions) {
@@ -56,7 +56,7 @@ public class ClientWebSocket {
     }
 
     public void broadcastPersonUpdate(Person person) {
-        String personAsJson = JSONB.toJson(new BroadcastMessage(PersonState.UPDATED, person));
+        String personAsJson = JSONB.toJson(new PersonUpdateDTO(PersonState.UPDATED, person));
 
         synchronized (sessions) {
             for (Session session : sessions) {

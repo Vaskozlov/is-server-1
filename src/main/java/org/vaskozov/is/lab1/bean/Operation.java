@@ -34,7 +34,7 @@ public class Operation {
 
     @PositiveOrZero
     @Builder.Default
-    private Long changes = null;
+    private Long changes = 0L;
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH}, optional = false)
     @JoinColumn(name = "user_id")

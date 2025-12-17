@@ -8,7 +8,7 @@ import com.opencsv.exceptions.CsvValidationException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.vaskozov.is.lab1.bean.*;
-import org.vaskozov.is.lab1.lib.Result;
+import org.vaskozov.is.lab1.util.Result;
 import org.vaskozov.is.lab1.validation.PersonValidator;
 
 import java.io.IOException;

@@ -1,0 +1,289 @@
+  openapi: 3.0.0
+  info:
+    title: Person Management API
+    version: 1.0.0
+    description: |-
+      API for managing Person entities, including creation, retrieval, update, deletion, bulk operations via CSV, operation history, and file downloads.
+      Real-time updates are available via WebSocket at ws://localhost:8080/is-1/ws/subscribe (not specified in OpenAPI).
+  servers:
+    - url: http://localhost:8080/is-1/api
+  paths:
+    /person/get_persons:
+      get:
+        summary: Retrieve a list of all Person entities
+        operationId: getPersons
+        responses:
+          '200':
+            description: Successful response
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Person'
+          '500':
+            description: Internal server error
+    /person/save:
+      post:
+        summary: Create a new Person entity
+        operationId: createPerson
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Person'
+        responses:
+          '201':
+            description: Person created
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Person'
+          '400':
+            description: Bad request (validation error)
+            content:
+              text/plain:
+                schema:
+                  type: string
+          '500':
+            description: Internal server error
+    /person/update:
+      post:
+        summary: Update an existing Person entity (supports partial updates)
+        operationId: updatePerson
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Person'
+        responses:
+          '200':
+            description: Person updated
+          '400':
+            description: Bad request (validation error)
+            content:
+              text/plain:
+                schema:
+                  type: string
+          '500':
+            description: Internal server error
+    /person/delete:
+      delete:
+        summary: Delete a Person entity by ID
+        operationId: deletePerson
+        parameters:
+          - name: id
+            in: query
+            required: true
+            schema:
+              type: integer
+              format: int64
+        responses:
+          '200':
+            description: Person deleted
+          '400':
+            description: Bad request (ID null)
+            content:
+              text/plain:
+                schema:
+                  type: string
+          '500':
+            description: Internal server error
+    /person/save_all:
+      post:
+        summary: Bulk create Persons from CSV file upload
+        operationId: bulkCreatePersons
+        requestBody:
+          required: true
+          content:
+            multipart/form-data:
+              schema:
+                type: object
+                properties:
+                  file:
+                    type: string
+                    format: binary
+                  username:
+                    type: string
+        responses:
+          '200':
+            description: Operation successful
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Operation'
+          '400':
+            description: Bad request (validation/parsing error)
+            content:
+              text/plain:
+                schema:
+                  type: string
+          '500':
+            description: Internal server error
+    /operations:
+      get:
+        summary: Retrieve operation history for a user
+        operationId: getOperations
+        parameters:
+          - name: username
+            in: query
+            required: true
+            schema:
+              type: string
+        responses:
+          '200':
+            description: List of operations
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Operation'
+          '404':
+            description: User not found
+          '500':
+            description: Internal server error
+    /download:
+      get:
+        summary: Download a file by object name
+        operationId: downloadFile
+        parameters:
+          - name: objectName
+            in: query
+            required: true
+            schema:
+              type: string
+        responses:
+          '200':
+            description: File downloaded
+            content:
+              application/octet-stream:
+                schema:
+                  type: string
+                  format: binary
+          '400':
+            description: Bad request (objectName null)
+            content:
+              text/plain:
+                schema:
+                  type: string
+          '404':
+            description: File not found
+            content:
+              text/plain:
+                schema:
+                  type: string
+          '500':
+            description: Internal server error
+  components:
+    schemas:
+      Person:
+        type: object
+        properties:
+          id:
+            type: integer
+            format: int64
+          name:
+            type: string
+          coordinates:
+            $ref: '#/components/schemas/Coordinates'
+          creationTime:
+            type: string
+            format: date-time
+          eyeColor:
+            type: string
+            enum:
+              - RED
+              - BLACK
+              - BLUE
+              - YELLOW
+              - BROWN
+          hairColor:
+            type: string
+            enum:
+              - RED
+              - BLACK
+              - BLUE
+              - YELLOW
+              - BROWN
+          location:
+            $ref: '#/components/schemas/Location'
+          height:
+            type: number
+            format: double
+          weight:
+            type: number
+            format: float
+          nationality:
+            type: string
+            enum:
+              - RUSSIA
+              - UNITED_KINGDOM
+              - GERMANY
+              - SPAIN
+              - SOUTH_KOREA
+            nullable: true
+      Coordinates:
+        type: object
+        properties:
+          id:
+            type: integer
+            format: int64
+            nullable: true
+          x:
+            type: integer
+            format: int32
+          y:
+            type: number
+            format: float
+      Location:
+        type: object
+        properties:
+          id:
+            type: integer
+            format: int64
+            nullable: true
+          x:
+            type: number
+            format: double
+          y:
+            type: number
+            format: double
+          name:
+            type: string
+      Operation:
+        type: object
+        properties:
+          id:
+            type: integer
+            format: int64
+          type:
+            type: string
+            enum:
+              - FILE_UPLOAD
+          status:
+            type: string
+            enum:
+              - SUCCESS
+              - FAILURE
+          changes:
+            type: integer
+            format: int64
+          user:
+            $ref: '#/components/schemas/User'
+          created:
+            type: string
+            format: date-time
+          objectName:
+            type: string
+            nullable: true
+      User:
+        type: object
+        properties:
+          id:
+            type: integer
+            format: int64
+          username:
+            type: string

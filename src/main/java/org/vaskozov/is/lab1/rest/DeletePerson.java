@@ -3,18 +3,18 @@ package org.vaskozov.is.lab1.rest;
 import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
-import org.vaskozov.is.lab1.bean.Person;
-import org.vaskozov.is.lab1.service.PersonService;
+import org.vaskozov.is.lab1.service.PersonServiceInterface;
 
 @ApplicationScoped
 @Path("/person/delete")
 @PermitAll
 public class DeletePerson {
     @Inject
-    private PersonService personService;
+    private PersonServiceInterface personService;
 
     @DELETE
     public Response deletePerson(@QueryParam("id") Long id) {
@@ -27,7 +27,7 @@ public class DeletePerson {
             return Response.ok().build();
         } catch (Exception ex) {
             System.err.println(ex.getMessage());
-            ex.printStackTrace();
+            ex.printStackTrace(System.err);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }

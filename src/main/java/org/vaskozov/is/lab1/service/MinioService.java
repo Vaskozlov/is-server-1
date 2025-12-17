@@ -1,3 +1,4 @@
+// Updated file: org.vaskozov.is.lab1.service.MinioService.java
 package org.vaskozov.is.lab1.service;
 
 import io.minio.*;
@@ -5,12 +6,11 @@ import io.minio.http.Method;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.NotFoundException;
-
 import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
 @ApplicationScoped
-public class MinioService {
+public class MinioService implements MinioServiceInterface {
     private MinioClient minioClient;
     private static final String BUCKET_NAME = "imports";
 
@@ -38,25 +38,22 @@ public class MinioService {
         }
     }
 
-    public String uploadFile(String objectName, InputStream input, long size, String contentType) {
+    @Override
+    public void uploadFile(String objectName, InputStream inputStream) {
         try {
             minioClient.putObject(
-                    PutObjectArgs
-                            .builder()
-                            .object(objectName)
+                    PutObjectArgs.builder()
                             .bucket(BUCKET_NAME)
-                            .stream(input, size, -1)
-                            .contentType(contentType)
+                            .object(objectName)
+                            .stream(inputStream, -1, 10485760)  // 10MB part size
                             .build()
             );
-
-            return getPresignedUrl(objectName);
         } catch (Exception e) {
-            e.printStackTrace(System.err);
-            throw new RuntimeException("Failed to upload file to MinIO: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to upload file to MinIO", e);
         }
     }
 
+    @Override
     public String getPresignedUrl(String objectName) {
         try {
             return minioClient.getPresignedObjectUrl(
@@ -72,6 +69,7 @@ public class MinioService {
         }
     }
 
+    @Override
     public InputStream getFileStream(String objectName) {
         try {
             return minioClient.getObject(

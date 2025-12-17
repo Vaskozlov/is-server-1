@@ -3,7 +3,7 @@ package org.vaskozov.is.lab1.validation;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.vaskozov.is.lab1.bean.Coordinates;
-import org.vaskozov.is.lab1.lib.Result;
+import org.vaskozov.is.lab1.util.Result;
 import org.vaskozov.is.lab1.repository.CoordinatesRepository;
 
 @ApplicationScoped

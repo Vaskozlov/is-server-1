@@ -6,9 +6,6 @@ import jakarta.inject.Inject;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
-import jakarta.json.bind.Jsonb;
-import jakarta.json.bind.JsonbBuilder;
-import jakarta.json.bind.JsonbConfig;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -23,6 +20,7 @@ import org.vaskozov.is.lab1.repository.OperationRepository;
 import org.vaskozov.is.lab1.repository.UserRepository;
 import org.vaskozov.is.lab1.service.MinioService;
 import org.vaskozov.is.lab1.service.PersonService;
+import org.vaskozov.is.lab1.util.JsonbUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -34,9 +32,6 @@ import java.util.UUID;
 @Path("/person/save_all")
 @PermitAll
 public class SavePersons {
-    private static final JsonbConfig JSONB_CONFIG = new JsonbConfig();
-    private static final Jsonb JSONB = JsonbBuilder.create(JSONB_CONFIG);
-
     @Inject
     private PersonService personService;
 
@@ -57,7 +52,7 @@ public class SavePersons {
         try (JsonReader jsonReader = Json.createReader(new ByteArrayInputStream(jsonBody.getBytes(StandardCharsets.UTF_8)))) {
             JsonObject jsonObject = jsonReader.readObject();
             String username = jsonObject.getString("username", null).trim();
-            String csvContent = jsonObject.getString("csvContent", null);
+            String csvContent = jsonObject.getString("content", null);
 
             if (username.isBlank()) {
                 return Response
@@ -80,7 +75,7 @@ public class SavePersons {
             if (csvContent == null) {
                 return Response
                         .status(Response.Status.BAD_REQUEST)
-                        .entity("File is required")
+                        .entity("csv content")
                         .build();
             }
 
@@ -102,22 +97,19 @@ public class SavePersons {
                         .build();
             }
 
-            var saveResult = personService.savePersons(persons);
+            var saveResult = personService.create(persons);
 
             String objectName = UUID.randomUUID() + ".csv";
-
             byte[] fileBytes = csvContent.getBytes(StandardCharsets.UTF_8);
+
             InputStream uploadStream = new ByteArrayInputStream(fileBytes);
-            long size = fileBytes.length;
-            String contentType = "text/csv";
-            String fileUrl = minioService.uploadFile(objectName, uploadStream, size, contentType);
+            minioService.uploadFile(objectName, uploadStream);
 
             Operation operation = Operation
                     .builder()
                     .type(OperationType.FILE_UPLOAD)
                     .status(OperationStatus.SUCCESS)
                     .user(user)
-                    .fileUrl(fileUrl)
                     .objectName(objectName)
                     .changes((long) persons.size())
                     .build();
@@ -133,7 +125,7 @@ public class SavePersons {
 
             return Response
                     .ok()
-                    .entity(JSONB.toJson(operation))
+                    .entity(JsonbUtil.JSONB.toJson(operation))
                     .build();
         } catch (Exception e) {
             System.err.println(e.getMessage());

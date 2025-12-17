@@ -14,14 +14,12 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.vaskozov.is.lab1.bean.Person;
 import org.vaskozov.is.lab1.service.PersonService;
+import org.vaskozov.is.lab1.util.JsonbUtil;
 
 @ApplicationScoped
 @Path("/person/update")
 @PermitAll
 public class UpdatePerson {
-    private static final JsonbConfig JSONB_CONFIG = new JsonbConfig();
-    private static final Jsonb JSONB = JsonbBuilder.create(JSONB_CONFIG);
-
     @Inject
     private PersonService personService;
 
@@ -32,7 +30,7 @@ public class UpdatePerson {
         Person person;
 
         try {
-            person = JSONB.fromJson(json, Person.class);
+            person = JsonbUtil.fromJson(json, Person.class);
         } catch (JsonbException e) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Failed to parse JSON").build();
         }
@@ -50,7 +48,7 @@ public class UpdatePerson {
             return Response.ok().build();
         } catch (Exception ex) {
             System.err.println(ex.getMessage());
-            ex.printStackTrace();
+            ex.printStackTrace(System.err);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }

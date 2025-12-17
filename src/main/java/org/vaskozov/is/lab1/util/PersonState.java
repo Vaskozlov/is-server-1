@@ -1,4 +1,4 @@
-package org.vaskozov.is.lab1.lib;
+package org.vaskozov.is.lab1.util;
 
 public enum PersonState {
     UPDATED,
