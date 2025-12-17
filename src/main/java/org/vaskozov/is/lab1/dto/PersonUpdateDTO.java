@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.vaskozov.is.lab1.bean.Person;
-import org.vaskozov.is.lab1.util.PersonState;
 
 @Data
 @NoArgsConstructor

@@ -26,8 +26,9 @@ val jakartaPersistenceApi = "3.2.0"
 val argon2Version = "2.12"
 val minioVersion = "8.6.0"
 val opencsvVersion = "5.12.0"
+val jacksonDatatypeJsr310Version = "2.17.2"
 
-java{
+java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
 }
@@ -53,6 +54,7 @@ dependencies {
     implementation("de.mkammerer:argon2-jvm:${argon2Version}")
     implementation("io.minio:minio:${minioVersion}")
     implementation("com.opencsv:opencsv:${opencsvVersion}")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonDatatypeJsr310Version}")
 }
 
 kotlin {

@@ -3,8 +3,11 @@ package org.vaskozov.is.lab1.rest;
 import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.vaskozov.is.lab1.bean.Person;
 import org.vaskozov.is.lab1.service.PersonService;
@@ -17,6 +20,8 @@ public class SavePerson {
     private PersonService personService;
 
     @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response savePerson(Person person) {
         try {
             var creationResult = personService.create(person);
@@ -32,13 +37,11 @@ public class SavePerson {
                     .status(Response.Status.CREATED)
                     .entity(creationResult.getValue())
                     .build();
-        } catch (org.hibernate.exception.ConstraintViolationException e) {
-            return savePerson(person);
         } catch (IllegalStateException e) {
             return savePerson(person);
         } catch (Exception ex) {
             System.err.println(ex.getMessage());
-            ex.printStackTrace();
+            ex.printStackTrace(System.err);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }

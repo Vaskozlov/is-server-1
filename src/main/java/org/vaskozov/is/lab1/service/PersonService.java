@@ -67,6 +67,8 @@ public class PersonService implements PersonServiceInterface {
 
         person.setCoordinates(coordinates);
         person.setLocation(location);
+
+        System.out.println(person);
         person = personRepository.save(person);
 
         clientWebSocket.broadcastPersonUpdate(person);

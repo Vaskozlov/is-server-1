@@ -11,7 +11,7 @@ import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
 import org.vaskozov.is.lab1.bean.Person;
 import org.vaskozov.is.lab1.dto.PersonUpdateDTO;
-import org.vaskozov.is.lab1.util.PersonState;
+import org.vaskozov.is.lab1.dto.PersonState;
 
 import java.util.HashSet;
 import java.util.Set;
