@@ -51,7 +51,11 @@ public class DownloadFile {
         } catch (Exception e) {
             System.err.println(e.getMessage());
             e.printStackTrace(System.err);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Failed to download file").build();
+
+            return Response
+                    .status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Failed to download file")
+                    .build();
         }
     }
 }

@@ -5,7 +5,9 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
-import org.vaskozov.is.lab1.bean.*;
+import org.vaskozov.is.lab1.bean.Coordinates;
+import org.vaskozov.is.lab1.bean.Location;
+import org.vaskozov.is.lab1.bean.Person;
 import org.vaskozov.is.lab1.lib.Result;
 import org.vaskozov.is.lab1.repository.*;
 import org.vaskozov.is.lab1.validation.CoordinatesValidator;
@@ -154,14 +156,7 @@ public class PersonService {
     }
 
     @Transactional
-    public Result<Operation, String> savePersons(List<Person> persons) {
-        var operationBuilder = Operation.builder();
-
-        operationBuilder.type(OperationType.FILE_UPLOAD);
-        operationBuilder.user(userRepository.findByUsername("vaskozlov").orElseThrow());
-
-        var operation = operationRepository.save(operationBuilder.build());
-
+    public Result<Void, String> savePersons(List<Person> persons) {
         for (Person person : persons) {
             var personValidationResult = personValidator.validate(person);
 
@@ -176,20 +171,12 @@ public class PersonService {
             em.persist(person);
             person.setCreationTime(LocalDateTime.now());
             savedPersons.add(person);
-//            person.setLocation(locationRepository.save(person.getLocation()));
-//            person.setCoordinates(coordinatesRepository.save(person.getCoordinates()));
-//            savedPersons.add(personRepository.save(person));
         }
 
         persons = savedPersons;
-
         broadcastChangedPersons(persons);
 
-        operation.setStatus(OperationStatus.SUCCESS);
-        operation.setChanges((long) persons.size());
-        operation = operationRepository.save(operation);
-
-        return Result.success(operation);
+        return Result.success(null);
     }
 
     public List<Person> getPersons() {

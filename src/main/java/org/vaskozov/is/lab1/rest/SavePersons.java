@@ -14,7 +14,10 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.vaskozov.is.lab1.bean.*;
+import org.vaskozov.is.lab1.bean.Operation;
+import org.vaskozov.is.lab1.bean.OperationStatus;
+import org.vaskozov.is.lab1.bean.OperationType;
+import org.vaskozov.is.lab1.bean.User;
 import org.vaskozov.is.lab1.parser.CsvPersonParser;
 import org.vaskozov.is.lab1.repository.OperationRepository;
 import org.vaskozov.is.lab1.repository.UserRepository;
@@ -23,10 +26,7 @@ import org.vaskozov.is.lab1.service.PersonService;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -104,7 +104,7 @@ public class SavePersons {
 
             var saveResult = personService.savePersons(persons);
 
-            String objectName = UUID.randomUUID() + "-import.csv";
+            String objectName = UUID.randomUUID() + ".csv";
 
             byte[] fileBytes = csvContent.getBytes(StandardCharsets.UTF_8);
             InputStream uploadStream = new ByteArrayInputStream(fileBytes);
@@ -118,6 +118,7 @@ public class SavePersons {
                     .status(OperationStatus.SUCCESS)
                     .user(user)
                     .fileUrl(fileUrl)
+                    .objectName(objectName)
                     .changes((long) persons.size())
                     .build();
 
@@ -132,7 +133,7 @@ public class SavePersons {
 
             return Response
                     .ok()
-                    .entity(JSONB.toJson(saveResult.getValue()))
+                    .entity(JSONB.toJson(operation))
                     .build();
         } catch (Exception e) {
             System.err.println(e.getMessage());
