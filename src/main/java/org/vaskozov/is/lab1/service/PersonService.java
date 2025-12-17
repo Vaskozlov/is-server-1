@@ -163,7 +163,6 @@ public class PersonService implements PersonServiceInterface {
     }
 
     @Override
-    @Transactional
     public Result<List<Person>, String> create(List<Person> persons) {
         for (Person person : persons) {
             var personValidationResult = personValidator.validate(person);

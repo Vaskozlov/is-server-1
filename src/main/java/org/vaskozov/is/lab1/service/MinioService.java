@@ -14,6 +14,10 @@ public class MinioService implements MinioServiceInterface {
     private MinioClient minioClient;
     private static final String BUCKET_NAME = "imports";
 
+    public MinioClient getMinioClient() {
+        return minioClient;
+    }
+
     @PostConstruct
     public void init() {
         minioClient = MinioClient

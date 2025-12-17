@@ -42,14 +42,15 @@ public class CsvPersonParser {
     @Inject
     private PersonValidator personValidator;
 
-    public Result<List<Person>, String> parsePersonCsv(String csvContent) {
+    public Result<List<Person>, String> parseCsv(String csvContent) {
         List<Person> persons = new ArrayList<>();
 
-        // Detect delimiter
-        String[] lines = csvContent.split("\n", 2); // Split to get first line
+        String[] lines = csvContent.split("\n", 2);
+
         if (lines.length == 0) {
             return Result.error("Empty CSV file provided");
         }
+
         String headerLine = lines[0];
         int commaCount = (int) headerLine.chars().filter(ch -> ch == ',').count();
         int semiCount = (int) headerLine.chars().filter(ch -> ch == ';').count();

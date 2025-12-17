@@ -6,25 +6,29 @@ import jakarta.inject.Inject;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
+import jakarta.transaction.UserTransaction;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.vaskozov.is.lab1.bean.Operation;
-import org.vaskozov.is.lab1.bean.OperationStatus;
-import org.vaskozov.is.lab1.bean.OperationType;
-import org.vaskozov.is.lab1.bean.User;
+import org.vaskozov.is.lab1.bean.*;
 import org.vaskozov.is.lab1.parser.CsvPersonParser;
 import org.vaskozov.is.lab1.repository.OperationRepository;
 import org.vaskozov.is.lab1.repository.UserRepository;
 import org.vaskozov.is.lab1.service.MinioService;
 import org.vaskozov.is.lab1.service.PersonService;
+import org.vaskozov.is.lab1.transaction.DbTransactionParticipant;
+import org.vaskozov.is.lab1.transaction.DistributedTransactionCoordinator;
+import org.vaskozov.is.lab1.transaction.MinioTransactionParticipant;
 import org.vaskozov.is.lab1.util.JsonbUtil;
+import org.vaskozov.is.lab1.util.Result;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,106 +37,95 @@ import java.util.UUID;
 @PermitAll
 public class SavePersons {
     @Inject
-    private PersonService personService;
+    private UserRepository userRepository;
 
     @Inject
-    private UserRepository userRepository;
+    private OperationRepository operationRepository;
+
+    @Inject
+    private PersonService personService;
 
     @Inject
     private CsvPersonParser csvPersonParser;
 
     @Inject
     private MinioService minioService;
+
     @Inject
-    private OperationRepository operationRepository;
+    private UserTransaction userTransaction;
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response savePersons(String jsonBody) {
-        try (JsonReader jsonReader = Json.createReader(new ByteArrayInputStream(jsonBody.getBytes(StandardCharsets.UTF_8)))) {
+    public Response savePersons(String jsonString) {
+        try (JsonReader jsonReader = Json.createReader(new StringReader(jsonString))) {
             JsonObject jsonObject = jsonReader.readObject();
-            String username = jsonObject.getString("username", null).trim();
-            String csvContent = jsonObject.getString("content", null);
+            String username = jsonObject.getString("username");
+            String content = jsonObject.getString("content");
 
-            if (username.isBlank()) {
-                return Response
-                        .status(Response.Status.BAD_REQUEST)
-                        .entity("Username is required")
-                        .build();
+            Optional<User> userOptional = userRepository.findByUsername(username);
+
+            if (userOptional.isEmpty()) {
+                return Response.status(Response.Status.NOT_FOUND).entity("User not found").build();
             }
 
-            Optional<User> userOpt = userRepository.findByUsername(username);
-
-            if (userOpt.isEmpty()) {
-                return Response
-                        .status(Response.Status.BAD_REQUEST)
-                        .entity("Username not found")
-                        .build();
-            }
-
-            User user = userOpt.get();
-
-            if (csvContent == null) {
-                return Response
-                        .status(Response.Status.BAD_REQUEST)
-                        .entity("csv content")
-                        .build();
-            }
-
-            var parseResult = csvPersonParser.parsePersonCsv(csvContent);
-
-            if (parseResult.isError()) {
-                return Response
-                        .status(Response.Status.BAD_REQUEST)
-                        .entity(parseResult.getError())
-                        .build();
-            }
-
-            var persons = parseResult.getValue();
-
-            if (persons.isEmpty()) {
-                return Response
-                        .status(Response.Status.BAD_REQUEST)
-                        .entity("No valid persons found in CSV")
-                        .build();
-            }
-
-            var saveResult = personService.create(persons);
-
+            User user = userOptional.get();
             String objectName = UUID.randomUUID() + ".csv";
-            byte[] fileBytes = csvContent.getBytes(StandardCharsets.UTF_8);
+            String bucketName = "imports";
+            String contentType = "text/csv";
 
-            InputStream uploadStream = new ByteArrayInputStream(fileBytes);
-            minioService.uploadFile(objectName, uploadStream);
+            long contentLength = content.getBytes(StandardCharsets.UTF_8).length;
+            InputStream contentStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
 
-            Operation operation = Operation
-                    .builder()
-                    .type(OperationType.FILE_UPLOAD)
-                    .status(OperationStatus.SUCCESS)
-                    .user(user)
-                    .objectName(objectName)
-                    .changes((long) persons.size())
-                    .build();
+            DistributedTransactionCoordinator coordinator = new DistributedTransactionCoordinator();
 
-            operationRepository.save(operation);
+            MinioTransactionParticipant minioParticipant = new MinioTransactionParticipant(
+                    minioService, bucketName, objectName, contentStream, contentLength, contentType
+            );
 
-            if (saveResult.isError()) {
-                return Response
-                        .status(Response.Status.BAD_REQUEST)
-                        .entity(saveResult.getError())
-                        .build();
-            }
+            coordinator.addParticipant(minioParticipant);
 
-            return Response
-                    .ok()
-                    .entity(JsonbUtil.JSONB.toJson(operation))
-                    .build();
+            DbTransactionParticipant<Operation> dbParticipant = new DbTransactionParticipant<>(userTransaction, () -> {
+                try (InputStream pendingStream = minioService.getFileStream("pending/" + objectName)) {
+                    Result<List<Person>, String> parseResult = csvPersonParser.parseCsv(content);
+
+                    if (parseResult.isError()) {
+                        throw new RuntimeException("Parse error: " + parseResult.getError());
+                    }
+
+                    List<Person> persons = parseResult.getValue();
+
+                    Operation operation = Operation.builder()
+                            .type(OperationType.FILE_UPLOAD)
+                            .status(OperationStatus.SUCCESS)
+                            .user(user)
+                            .objectName(objectName)
+                            .changes((long) persons.size())
+                            .build();
+
+                    operationRepository.save(operation);
+
+                    Result<List<Person>, String> saveResult = personService.create(persons);
+
+                    if (saveResult.isError()) {
+                        throw new RuntimeException("Save error: " + saveResult.getError());
+                    }
+
+                    personService.broadcastChangedPersons(persons);
+
+                    return operation;
+                } catch (Exception e) {
+                    throw new RuntimeException("DB operation failed", e);
+                }
+            });
+
+            coordinator.addParticipant(dbParticipant);
+
+            Operation resultOperation = coordinator.coordinate(dbParticipant::getResult);
+            return Response.ok(JsonbUtil.toJson(resultOperation)).build();
         } catch (Exception e) {
-            System.err.println(e.getMessage());
+            System.err.println("Transaction failed: " + e.getMessage());
             e.printStackTrace(System.err);
-            return Response
-                    .status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Transaction failed").build();
         }
     }
 }
